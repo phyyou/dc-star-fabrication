@@ -6,7 +6,7 @@
 
 터미널 실행 후 npm install 입력
 
-node index.js (반복) "(url)" 면 실행됨
+node index.js (반복) "(url)" 입력 하면 실행됨
 
 [proxyscan](https://www.proxyscan.io/) API를 사용하며 
 
