@@ -1,6 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const ProxyAgent = require("simple-proxy-agent");
+const SocksProxyAgent = require("socks-proxy-agent");
 
 (async function () {
     process.title = "디시인사이드 념글 주작기 Made By green1052";
@@ -63,11 +63,6 @@ const ProxyAgent = require("simple-proxy-agent");
 
             const proxy = await GetProxy();
 
-            const info = await new ProxyAgent(`socks4://${proxy.ip}:${proxy.port}`, {
-                tunnel: true,
-                timeout: 20000
-            });
-
             const res = await axios.post("https://gall.dcinside.com/board/recommend/vote", formData, {
                 headers: {
                     "Host": "gall.dcinside.com",
@@ -82,7 +77,7 @@ const ProxyAgent = require("simple-proxy-agent");
                     "Connection": "keep-alive",
                     "Cookie": `${recommend_cookie}=Y; ci_c=${token};`,
                 },
-                httpsAgent: info
+                httpsAgent: new SocksProxyAgent(`socks4://${proxy.ip}:${proxy.port}`)
             });
 
             const split = res.data.split('||');
