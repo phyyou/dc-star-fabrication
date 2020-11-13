@@ -6,12 +6,14 @@ const SocksProxyAgent = require("socks-proxy-agent");
     process.title = "디시인사이드 념글 주작기 Made By green1052";
 
     const loop = parseInt(process.argv[2]);
-    const url = new URL(process.argv[3]);
+    const voteMode = process.argv[3].toUpperCase();
+    const url = new URL(process.argv[4]);
 
-    if (!loop || !url)
-        return console.log(`사용법: node index.js (반복) "(url)"`);
+    if (!loop || !url || voteMode !== "U" && voteMode !== "D")
+        return console.log(`사용법: node index.js (반복) (U | D) "(url)"`);
 
-    let overlapCheck = [];
+    const voteStr = voteMode === "U" ? "추천" : "비추천";
+    const overlapCheck = [];
 
     async function GetProxy() {
         try {
@@ -36,6 +38,15 @@ const SocksProxyAgent = require("socks-proxy-agent");
         }
     }
 
+    function GetCookie(cookies, name) {
+        for (const cookie of cookies) {
+            if (cookie.includes(name))
+                return cookie.split(';')[0].slice(name.length + 1);
+        }
+
+        throw `${name} 쿠키를 찾지 못했습니다.`;
+    }
+
     async function FabricationStar() {
         try {
             const response = await axios.get(url.href, {
@@ -46,24 +57,19 @@ const SocksProxyAgent = require("socks-proxy-agent");
 
             const $ = cheerio.load(response.data);
 
-            let token = response.headers["set-cookie"][1].split(' ')[0];
-            token = token.substring(5, token.length - 1);
+            const token = GetCookie(response.headers["set-cookie"], "ci_c");
 
             const gall_id = $("#id").val();
-            const no = $(".btn_recom_up").attr("data-no");
+            const no = $("#no").val();
 
             let code_recommend_id = "code_recommend";
 
             if (no)
                 code_recommend_id += `_${no}`;
 
-            const recommend_cookie = `${gall_id}${no}_Firstcheck`;
-
-            const formData = `ci_t=${token}&id=${gall_id}&no=${no}&mode=U&code_recommend=${$(`#${code_recommend_id}`).val()}`;
-
             const proxy = await GetProxy();
 
-            const res = await axios.post("https://gall.dcinside.com/board/recommend/vote", formData, {
+            const res = await axios.post("https://gall.dcinside.com/board/recommend/vote", `ci_t=${token}&id=${gall_id}&no=${no}&mode=${voteMode}&code_recommend=${$(`#${code_recommend_id}`).val()}`, {
                 headers: {
                     "Host": "gall.dcinside.com",
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0",
@@ -75,7 +81,7 @@ const SocksProxyAgent = require("socks-proxy-agent");
                     "X-Requested-With": "XMLHttpRequest",
                     "Origin": "https://gall.dcinside.com",
                     "Connection": "keep-alive",
-                    "Cookie": `${recommend_cookie}=Y; ci_c=${token};`,
+                    "Cookie": `${gall_id}${no}_Firstcheck${voteMode === "D" ? "_down" : ""}=Y; ci_c=${token};`,
                 },
                 httpsAgent: new SocksProxyAgent(`socks4://${proxy.ip}:${proxy.port}`)
             });
@@ -83,16 +89,16 @@ const SocksProxyAgent = require("socks-proxy-agent");
             const split = res.data.split('||');
 
             if (split[0].includes("true"))
-                console.log(`추천 성공 추천 수: ${split[1]}`);
+                console.log(`${voteStr} 성공 ${voteStr} 수: ${split[1]}`);
             else
-                console.log(`추천 실패 사유: ${split[1]}`);
+                console.log(`${voteStr} 실패 사유: ${split[1]}`);
         } catch (e) {
             console.log(`추천을 하던 중 오류가 발생했습니다. 오류: ${e}`);
         }
     }
 
     for (let i = 0; i < loop; i++) {
-        console.log(`${i + 1}번째 개념글 추천 중...`);
+        console.log(`${i + 1}번째 ${voteStr} 중...`);
         await FabricationStar();
     }
 })();
