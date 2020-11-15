@@ -62,17 +62,10 @@ const SocksProxyAgent = require("socks-proxy-agent");
             const gall_id = $("#id").val();
             const no = $("#no").val();
 
-            let code_recommend_id = "code_recommend";
-
-            if (no)
-                code_recommend_id += `_${no}`;
-
             return {
                 "token": token,
                 "gall_id": gall_id,
-                "no": no,
-                "code_recommend_id": code_recommend_id,
-                "j_code_recommend_id": $(`#${code_recommend_id}`).val()
+                "no": no
             };
         } catch (e) {
             console.log(`${voteStr}을 하던 중 오류가 발생했습니다. 오류: ${e}`);
@@ -84,7 +77,7 @@ const SocksProxyAgent = require("socks-proxy-agent");
         try {
             const proxy = await GetProxy();
 
-            const response = await axios.post("https://gall.dcinside.com/board/recommend/vote", `ci_t=${token.token}&id=${token.gall_id}&no=${token.no}&mode=${voteMode}&code_recommend=${token.j_code_recommend_id}`, {
+            const response = await axios.post("https://gall.dcinside.com/board/recommend/vote", `ci_t=${token.token}&id=${token.gall_id}&no=${token.no}&mode=${voteMode}&code_recommend=undefined`, {
                 headers: {
                     "Host": "gall.dcinside.com",
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0",
