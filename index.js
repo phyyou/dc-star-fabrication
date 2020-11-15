@@ -47,7 +47,7 @@ const SocksProxyAgent = require("socks-proxy-agent");
         throw `${name} 쿠키를 찾지 못했습니다.`;
     }
 
-    async function FabricationStar() {
+    async function GetToken() {
         try {
             const response = await axios.get(url.href, {
                 headers: {
@@ -67,9 +67,24 @@ const SocksProxyAgent = require("socks-proxy-agent");
             if (no)
                 code_recommend_id += `_${no}`;
 
+            return {
+                "token": token,
+                "gall_id": gall_id,
+                "no": no,
+                "code_recommend_id": code_recommend_id,
+                "j_code_recommend_id": $(`#${code_recommend_id}`).val()
+            };
+        } catch (e) {
+            console.log(`${voteStr}을 하던 중 오류가 발생했습니다. 오류: ${e}`);
+            process.exit();
+        }
+    }
+
+    async function FabricationStar(token) {
+        try {
             const proxy = await GetProxy();
 
-            const res = await axios.post("https://gall.dcinside.com/board/recommend/vote", `ci_t=${token}&id=${gall_id}&no=${no}&mode=${voteMode}&code_recommend=${$(`#${code_recommend_id}`).val()}`, {
+            const response = await axios.post("https://gall.dcinside.com/board/recommend/vote", `ci_t=${token.token}&id=${token.gall_id}&no=${token.no}&mode=${voteMode}&code_recommend=${token.j_code_recommend_id}`, {
                 headers: {
                     "Host": "gall.dcinside.com",
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0",
@@ -81,24 +96,26 @@ const SocksProxyAgent = require("socks-proxy-agent");
                     "X-Requested-With": "XMLHttpRequest",
                     "Origin": "https://gall.dcinside.com",
                     "Connection": "keep-alive",
-                    "Cookie": `${gall_id}${no}_Firstcheck${voteMode === "D" ? "_down" : ""}=Y; ci_c=${token};`,
+                    "Cookie": `${token.gall_id}${token.no}_Firstcheck${voteMode === "D" ? "_down" : ""}=Y; ci_c=${token.token};`,
                 },
                 httpsAgent: new SocksProxyAgent(`socks4://${proxy.ip}:${proxy.port}`)
             });
 
-            const split = res.data.split('||');
+            const split = response.data.split('||');
 
             if (split[0].includes("true"))
                 console.log(`${voteStr} 성공 ${voteStr} 수: ${split[1]}`);
             else
                 console.log(`${voteStr} 실패 사유: ${split[1]}`);
         } catch (e) {
-            console.log(`추천을 하던 중 오류가 발생했습니다. 오류: ${e}`);
+            console.log(`${voteStr}을 하던 중 오류가 발생했습니다. 오류: ${e}`);
         }
     }
 
+    const token = await GetToken();
+
     for (let i = 0; i < loop; i++) {
         console.log(`${i + 1}번째 ${voteStr} 중...`);
-        await FabricationStar();
+        await FabricationStar(token);
     }
 })();
