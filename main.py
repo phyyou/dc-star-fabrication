@@ -95,7 +95,7 @@ url = input("게시글 주소를 입력해주세요: ")
 if not loop.isdigit() or vote_mode != "U" and vote_mode != "D" or not url:
     print("올바르지 못한 입력")
     exit()
-else:
-    for i in range(int(loop)):
-        print(f"{i + 1}번째 {'비' if vote_mode == 'D' else ''}추천 중...")
-        fabrication_star()
+
+for i in range(int(loop)):
+    print(f"{i + 1}번째 {'비' if vote_mode == 'D' else ''}추천 중...")
+    fabrication_star()
