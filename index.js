@@ -4,10 +4,7 @@ const SocksProxyAgent = require('socks-proxy-agent');
 
 (async () => {
     if (process.argv.length < 4)
-    {
-        console.log(`사용법: node index.js (반복) (U | D) "(url)"`);
-        return;
-    }
+        return console.log(`사용법: node index.js (반복) (U | D) "(url)"`);
 
     process.title = '디시인사이드 념글 주작기 Made By green1052';
 
